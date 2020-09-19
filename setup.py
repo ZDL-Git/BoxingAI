@@ -22,7 +22,7 @@ print(':::version:::', VERSION)
 print(':::packages:::', PACKAGES)
 
 setup(
-    name='zdl-projects',  # 安装后显示的包名，非导入名称
+    name='zdl-projects-BoxingAI',  # 安装后显示的包名，非导入名称
     version=VERSION,
     packages=PACKAGES,  # 导入名称
     package_data=PACKAGE_DATA,
