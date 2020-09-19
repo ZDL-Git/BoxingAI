@@ -32,5 +32,5 @@ setup(
 
     author_email="zdl_daily@163.com",
     description="This is an personal tool package",
-    url="https://github.com/ZDL-Git/ZDL-UTILS",
+    url="https://github.com/ZDL-Git/BoxingAI",
 )
