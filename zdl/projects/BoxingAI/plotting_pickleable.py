@@ -17,10 +17,10 @@ class PlottingPickleable:
 
         self.frames_artists = []
 
-        self.init_fig()
-        self.init_pose()
+        self._initFig()
+        self._initPose()
 
-    def init_pose(self):
+    def _initPose(self):
         if self.model_pose == 'BODY_25':
             self.pose_sections = [[17, 15, 0, 16, 18], [0, 1, 8], [1, 2, 3, 4], [1, 5, 6, 7], [8, 9, 10, 11],
                                   [8, 12, 13, 14], [11, 23, 22, 11, 24], [14, 20, 19, 14, 21]]
@@ -31,7 +31,7 @@ class PlottingPickleable:
             raise NotImplementedError()
         self.pose_colors = ['blue', 'red', 'gray']
 
-    def init_fig(self):
+    def _initFig(self):
         w, h = self.media_info['width'], self.media_info['height']
         tip_h = 300
 
@@ -60,7 +60,7 @@ class PlottingPickleable:
         self.ax_main = ax_main
         self.ax_tip = ax_tip
 
-    def new_frame(self, poses=[], points=[], texts=[], rects=[]):
+    def newFrame(self, poses=[], points=[], texts=[], rects=[]):
         self.frames_contents[len(self.frames_contents)] = {'poses': poses, 'points': points, 'texts': texts,
                                                            'rects': rects}
 
@@ -135,11 +135,12 @@ class PlottingPickleable:
 
         return line_objs + point_objs + rect_objs + text_objs
 
-    def plot_frame(self, i):
+    def plotFrame(self, i):
         artists = self._frame2artists(i)
         for artist in artists:
             artist.draw(self.ax_main)
 
+    # main entry
     def animate(self, save_video_to=None, plot_center=False, plot_rect=False):
         logger.debug('animating...')
         fps = self.media_info['fps']
@@ -154,8 +155,8 @@ class PlottingPickleable:
     def load(cls, fname) -> 'PlottingPickleable':
         with open(fname, 'rb') as f:
             self_obj = pickle.load(f)  # type:'PlottingPickleable'
-        self_obj.init_fig()
-        self_obj.init_pose()
+        self_obj._initFig()
+        self_obj._initPose()
         return self_obj
 
     def dump(self, fname):

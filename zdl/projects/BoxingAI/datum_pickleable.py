@@ -14,7 +14,7 @@ sys.path.append('/usr/local/lib')
 
 class DatumPickleable:
     def __init__(self, datum, model_type, title=''):
-        self.poseKeypoints = self.add_inherit_flag_col(datum.poseKeypoints)
+        self.poseKeypoints = self.addInheritFlagCol(datum.poseKeypoints)
         self.cvInputData = datum.cvInputData
         self.cvOutputData = datum.cvOutputData
         self.model_type = model_type
@@ -35,20 +35,24 @@ class DatumPickleable:
         self.cvInputData = state['cvInputData']
         self.cvOutputData = state['cvOutputData']
 
-    def show_state(self):
+    def showState(self):
         logger.debug(self.poseKeypoints)
         ImageCV(self.cvInputData, 'cvInputData').show()
         ImageCV(self.cvOutputData, 'cvOutputData').show()
 
-    def add_inherit_flag_col(self, poseKeypoints):
+    @classmethod
+    def addInheritFlagCol(cls, poseKeypoints):
         shape = poseKeypoints.shape
         if shape == () or shape and shape[-1] == 4: return poseKeypoints
-        new_shape = *shape[:-1], shape[-1] + 1
-        result = np.zeros(new_shape, dtype=np.float32)
-        result[..., :-1] = poseKeypoints
+        # new_shape = *shape[:-1], shape[-1] + 1
+        # result = np.zeros(new_shape, dtype=np.float32)
+        # result[..., :-1] = poseKeypoints
+
+        append_shape = *shape[:-1], 1
+        result = np.concatenate((poseKeypoints, np.zeros(append_shape, dtype=poseKeypoints.dtype)), axis=2)
         return result
 
-    def put_text(self, text, point=(50, 50), font_scale=None, thickness=None, img=None):
+    def putText(self, text, point=(50, 50), font_scale=None, thickness=None, img=None):
         text = str(text)
         font = cv2.FONT_HERSHEY_SIMPLEX
         if img is None:
@@ -70,7 +74,7 @@ class DatumPickleable:
         cv2.putText(img, text, point, font, font_scale,
                     (0, 0, 0), thickness, cv2.LINE_AA, False)
 
-    def append_text(self, text, point=(50, 50)):
+    def appendText(self, text, point=(50, 50)):
         self.text += f'\n{text}'
         cv2.putText(self.cvOutputData, self.text, point, cv2.FONT_HERSHEY_SIMPLEX, 2,
                     (102, 0, 255), 2, cv2.LINE_AA, False)
@@ -80,29 +84,28 @@ class DatumPickleable:
     #     Pose(keyPoints=clean_pose,model_type=self.model_type).cleanup(['face','feet'])
     #     return Point.get_center(clean_pose,need_type=need_type)
 
-    def count_nonzero_points(self):
+    def countNonzeroPoints(self):
         return pylab.count_nonzero(self.poseKeypoints[0][:, 0]), \
                pylab.count_nonzero(self.poseKeypoints[1][:, 0]), \
                pylab.count_nonzero(self.poseKeypoints[2][:, 0])
 
-    def poseKeypoints_order_by_x(self):
+    def poseKeypointsOrderByX(self):
         return sorted(self.poseKeypoints, key=lambda x: self.centers(x)[0])
 
-    def poseKeypoints_order_by_integrity(self):
+    def poseKeypointsOrderByIntegrity(self):
         return sorted(self.poseKeypoints, key=lambda x: pylab.count_nonzero(x[:, 0]), reverse=True)
 
-    def stable_poseKeypoints(self):
+    def stablePoseKeypoints(self):
         pass
-        return
 
-    def label_points(self, points, img=None, mark=False, font_scale=None, thickness=None, copy_=True):
+    def labelPoints(self, points, img=None, mark=False, font_scale=None, thickness=None, copy_=True):
         if img is None:
             img = self.cvOutputData
         if copy_:
             img = copy.deepcopy(img)
         if mark:
             for i, p in enumerate(points):
-                self.put_text(i, tuple(p[:2]), font_scale=font_scale, thickness=thickness, img=img)
+                self.putText(i, tuple(p[:2]), font_scale=font_scale, thickness=thickness, img=img)
         else:
             for p in points:
                 cv2.circle(img, (p[0], p[1]), 15, (0, 255, 255), thickness=2, lineType=8, shift=0)
@@ -111,11 +114,11 @@ class DatumPickleable:
     def show(self, img, title=None):
         ImageCV(img, title).show()
 
-    def show_cvout(self):
+    def showCvOut(self):
         ImageCV(self.cvOutputData, self.title).show()
 
     @classmethod
-    def rebuild_from_roi_datum(cls, img, roi_datum_tuple_list, model_type):
+    def rebuildFromRoiDatum(cls, img, roi_datum_tuple_list, model_type):
         datum_rebuild = namedtuple('datum_rebuild', ['poseKeypoints', 'cvInputData', 'cvOutputData'])
         datum_rebuild.cvInputData = img
         img_fill = np.copy(img)
