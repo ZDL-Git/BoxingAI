@@ -97,6 +97,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             self._showIfEnabled(img, title=f'{name}:img_load_hook {i} result')
         return img
 
+    @property
     @abstractmethod
     def _imgs_producer(self):
         pass
