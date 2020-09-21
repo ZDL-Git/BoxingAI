@@ -119,7 +119,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
         if self.show:
             center_points = Poses(datum.poseKeypoints, self._pose_estimator.pose_type).centers(
-                need_type='tuple')
+                need_type=tuple)
             ImageCV(datum.cvOutputData).drawPoints(center_points, copy=False)
             self._showIfEnabled(datum.cvOutputData, title=f'{name_img_tuple[0]}:pose_estimate_result')
         return datum
