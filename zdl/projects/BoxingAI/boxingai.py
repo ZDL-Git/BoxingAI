@@ -106,7 +106,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             box_entity[0][::] = imgobj.normRectToAbsRect(box_entity[0], 1)
 
         if self.show:
-            imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').draw_boxes(box_entities, copy=True).show()
+            imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').drawBoxes(box_entities, copy=True).show()
         return result, box_entities
 
     def _processImg(self, image) -> Tuple:
