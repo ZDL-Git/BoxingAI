@@ -109,22 +109,21 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').draw_boxes(box_entities, copy=True).show()
         return result, box_entities
 
-    def _processImg(self, image) -> Poses:
-        poses, _ = self._pose_estimator.extract(image)
-        return poses
+    def _processImg(self, image) -> Tuple:
+        poses, datum = self._pose_estimator.extract(image)
+        return poses, datum
 
     @timeit
     def _estimatePose(self, name_img_tuple):
-        poses = self._processImg(name_img_tuple[1])
-        logger.debug(f'{name_img_tuple[0]}:_estimate_pose num:', len(poses))
+        poses, datum = self._processImg(name_img_tuple[1])
+        logger.debug(f'{name_img_tuple[0]}:_estimate_pose num:', ndarrayLen(datum.poseKeypoints))
 
-        datum_pickleable = DatumPickleable(poses.all_keypoints, self._pose_estimator.pose_type, True)
         if self.show:
-            center_points = Poses(datum_pickleable.poseKeypoints, self._pose_estimator.pose_type).centers(
+            center_points = Poses(datum.poseKeypoints, self._pose_estimator.pose_type).centers(
                 need_type='tuple')
-            ImageCV(datum_pickleable.cvOutputData).drawPoints(center_points, copy=False)
-            self._showIfEnabled(datum_pickleable.cvOutputData, title=f'{name_img_tuple[0]}:pose_estimate_result')
-        return datum_pickleable
+            ImageCV(datum.cvOutputData).drawPoints(center_points, copy=False)
+            self._showIfEnabled(datum.cvOutputData, title=f'{name_img_tuple[0]}:pose_estimate_result')
+        return datum
 
     @timeit
     def _gen_main_process(self, max_people_num, heuristic, smooth):
