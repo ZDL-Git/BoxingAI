@@ -1,15 +1,17 @@
 import copy
 from collections import namedtuple
+from typing import Type
 
 import cv2
 import numpy as np
-import pylab
+from zdl.AI.pose.pose.pose import Poses, Pose
 from zdl.utils.io.log import logger
 from zdl.utils.media.image import ImageCV
+from zdl.utils.media.point import Point
 
 
 class DatumPickleable:
-    def __init__(self, datum, model_type, add_inherit_flag_col: bool = False, title=''):
+    def __init__(self, datum, model_type: Type[Pose], add_inherit_flag_col: bool = False, title=''):
         self.poseKeypoints = self.addInheritFlagCol(datum.poseKeypoints) \
             if add_inherit_flag_col else datum.poseKeypoints
         self.cvInputData = datum.cvInputData
@@ -72,24 +74,19 @@ class DatumPickleable:
         cv2.putText(self.cvOutputData, self.text, point, cv2.FONT_HERSHEY_SIMPLEX, 2,
                     (102, 0, 255), 2, cv2.LINE_AA, False)
 
-    # def centers(self, need_type='list'):
-    #     clean_pose = self.poseKeypoints.copy()
-    #     Pose(keyPoints=clean_pose,model_type=self.model_type).cleanup(['face','feet'])
-    #     return Point.get_center(clean_pose,need_type=need_type)
+    def centers(self, need_type=list):
+        clean_pose = self.poseKeypoints.copy()
+        Poses(clean_pose, pose_type=self.model_type).cleanup(['face', 'feet'])
+        return Point.pointsCenter(clean_pose, need_type=need_type)
 
     def countNonzeroPoints(self):
-        return pylab.count_nonzero(self.poseKeypoints[0][:, 0]), \
-               pylab.count_nonzero(self.poseKeypoints[1][:, 0]), \
-               pylab.count_nonzero(self.poseKeypoints[2][:, 0])
+        return [np.count_nonzero(np.count_nonzero(pose[:, :2], axis=1)) for pose in self.poseKeypoints]
 
-    def poseKeypointsOrderByX(self):
-        return sorted(self.poseKeypoints, key=lambda x: self.centers(x)[0])
+    def poseKeypointsOrderByCenterX(self):
+        return self.poseKeypoints[np.argsort(self.centers())]
 
     def poseKeypointsOrderByIntegrity(self):
-        return sorted(self.poseKeypoints, key=lambda x: pylab.count_nonzero(x[:, 0]), reverse=True)
-
-    def stablePoseKeypoints(self):
-        pass
+        return sorted(self.poseKeypoints, key=lambda x: np.count_nonzero(x[:, 0]), reverse=True)
 
     def labelPoints(self, points, img=None, mark=False, font_scale=None, thickness=None, copy_=True):
         if img is None:
