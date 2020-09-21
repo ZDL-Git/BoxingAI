@@ -1,5 +1,4 @@
 import copy
-import sys
 from collections import namedtuple
 
 import cv2
@@ -8,13 +7,11 @@ import pylab
 from zdl.utils.io.log import logger
 from zdl.utils.media.image import ImageCV
 
-sys.path.append('/usr/local/python')
-sys.path.append('/usr/local/lib')
-
 
 class DatumPickleable:
-    def __init__(self, datum, model_type, title=''):
-        self.poseKeypoints = self.addInheritFlagCol(datum.poseKeypoints)
+    def __init__(self, datum, model_type, add_inherit_flag_col: bool = False, title=''):
+        self.poseKeypoints = self.addInheritFlagCol(datum.poseKeypoints) \
+            if add_inherit_flag_col else datum.poseKeypoints
         self.cvInputData = datum.cvInputData
         self.cvOutputData = datum.cvOutputData
         self.model_type = model_type
@@ -44,10 +41,6 @@ class DatumPickleable:
     def addInheritFlagCol(cls, poseKeypoints):
         shape = poseKeypoints.shape
         if shape == () or shape and shape[-1] == 4: return poseKeypoints
-        # new_shape = *shape[:-1], shape[-1] + 1
-        # result = np.zeros(new_shape, dtype=np.float32)
-        # result[..., :-1] = poseKeypoints
-
         append_shape = *shape[:-1], 1
         result = np.concatenate((poseKeypoints, np.zeros(append_shape, dtype=poseKeypoints.dtype)), axis=2)
         return result
@@ -118,7 +111,7 @@ class DatumPickleable:
         ImageCV(self.cvOutputData, self.title).show()
 
     @classmethod
-    def rebuildFromRoiDatum(cls, img, roi_datum_tuple_list, model_type):
+    def rebuildFromRoiDatum(cls, img, roi_datum_tuple_list, model_type, add_inherit_flag_col: bool = False):
         datum_rebuild = namedtuple('datum_rebuild', ['poseKeypoints', 'cvInputData', 'cvOutputData'])
         datum_rebuild.cvInputData = img
         img_fill = np.copy(img)
@@ -139,4 +132,4 @@ class DatumPickleable:
 
         datum_rebuild.poseKeypoints = np.vstack(datums_pk) if datums_pk else np.array(0.0)
         datum_rebuild.cvOutputData = img_fill
-        return cls(datum_rebuild, model_type)
+        return cls(datum_rebuild, model_type, add_inherit_flag_col)
