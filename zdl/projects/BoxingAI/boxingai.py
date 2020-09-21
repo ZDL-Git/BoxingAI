@@ -16,6 +16,7 @@ import psutil
 import pylab
 from IPython.core.display import HTML, display
 from matplotlib import animation
+from zdl.AI.helper.openpose import DatumPickleable
 from zdl.AI.object_detection.TF_detector import ObjectDetector
 from zdl.AI.pose.extractor.extractor import Extractor
 from zdl.AI.pose.pose.pose import Pose, Poses
@@ -26,11 +27,7 @@ from zdl.utils.media.point import Point
 from zdl.utils.media.video import Video
 from zdl.utils.time.counter import timeit
 
-from zdl.projects.BoxingAI.datum_pickleable import DatumPickleable
 from zdl.projects.BoxingAI.plotting_pickleable import PlottingPickleable
-
-sys.path.append('/usr/local/python')
-sys.path.append('/usr/local/lib')
 
 
 class BoxingAIHelper:
@@ -115,17 +112,16 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').draw_boxes(box_entities, copy=True).show()
         return result, box_entities
 
-    def _processImg(self, image) -> Pose:
-        pose = self._pose_estimator.extract(image)
-        return pose
+    def _processImg(self, image) -> Poses:
+        poses, _ = self._pose_estimator.extract(image)
+        return poses
 
     @timeit
     def _estimatePose(self, name_img_tuple):
-        pose = self._processImg(name_img_tuple[1])
-        logger.debug(f'{name_img_tuple[0]}:_estimate_pose num:',
-                     ndarrayLen(pose.key_points))
+        poses = self._processImg(name_img_tuple[1])
+        logger.debug(f'{name_img_tuple[0]}:_estimate_pose num:', len(poses))
 
-        datum_pickleable = DatumPickleable(pose, self._pose_estimator.pose_type.NAME)
+        datum_pickleable = DatumPickleable(poses.all_keypoints, self._pose_estimator.pose_type, True)
         if self.show:
             center_points = Poses(datum_pickleable.poseKeypoints, self._pose_estimator.pose_type).centers(
                 need_type='tuple')
@@ -155,7 +151,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                     roi_datum_tuple_list.append((roi_rect, datum))
                     boxer_id_score_to_every_pose += [(i, b)] * max(1, ndarrayLen(datum.poseKeypoints))
                 datum = DatumPickleable.rebuildFromRoiDatum(got[1], roi_datum_tuple_list,
-                                                            self._pose_estimator.pose_type.NAME)
+                                                            self._pose_estimator.pose_type, True)
                 # datum,fill_num = self._fill_missing_pose_keypoints(datum, max_people_num)
                 # boxer_id_score_to_every_pose += [None] * fill_num
                 self._showIfEnabled(datum.cvOutputData, title=f'{got[0]}:rebuild(may be covered)')
