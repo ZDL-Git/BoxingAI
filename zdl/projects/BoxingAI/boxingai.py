@@ -93,7 +93,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
     def _execPrepHooks(self, img, name):
         for i, hook in enumerate(self.prep_hooks):
-            logger.debug(f'hook {i} running...', inspect.getsource(hook))
+            logger.debug(f'hook {i} running...\n{inspect.getsource(hook)}')
             img = hook(img)
             self._showIfEnabled(img, title=f'{name}:img_load_hook {i} result')
         return img
@@ -166,12 +166,12 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
             # posescore_list = self._fill_missing_pose(posescore_list, max_people_num)
             logger.debug('rescored pose score:')
-            logger.pprint([f'frame index:[{got[0]}] from_boxer:{t[1]}  '
-                           f'completion_score(cleaned):{t[2]} completion_multi_boxerscore:{t[3]}  '
-                           f'points_scores_sum:{t[4]} scores_sum_after_re_pu:{t[5]}  '
-                           f'norm_dis_to_boxer_center:{t[6]} knee_and_below_nonzero_exists:{t[7]}  '
-                           f'[p0x:{t[0].keyPoints[0][0]} p1x:{t[0].keyPoints[1][0]} p8x:{t[0].keyPoints[8][0]} p17x:{t[0].keyPoints[17][0]}]'
-                           for t in posescore_list])
+            logger.debug([f'frame index:[{got[0]}] from_boxer:{t[1]}  '
+                          f'completion_score(cleaned):{t[2]} completion_multi_boxerscore:{t[3]}  '
+                          f'points_scores_sum:{t[4]} scores_sum_after_re_pu:{t[5]}  '
+                          f'norm_dis_to_boxer_center:{t[6]} knee_and_below_nonzero_exists:{t[7]}  '
+                          f'[p0x:{t[0].keyPoints[0][0]} p1x:{t[0].keyPoints[1][0]} p8x:{t[0].keyPoints[8][0]} p17x:{t[0].keyPoints[17][0]}]'
+                          for t in posescore_list])
             # posescore_list = list(filter(lambda t: t.points_scores_sum_after_re_pu,posescore_list[:max_people_num]))
             # posescore_list = posescore_list[:3]
             posescore_list = self._connectAndSmoothPoses(posescore_list, smooth=smooth)
@@ -189,7 +189,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         exists_boxer_num = len({p_s.boxer_id for p_s in posescore_list})
         missing_num = target_num - exists_boxer_num
         if missing_num <= 0: return posescore_list
-        logger.info('fill missing pose keypoints num:', missing_num)
+        logger.info(f'fill missing pose keypoints num: {missing_num}')
         for _ in range(missing_num):
             new_pose = np.zeros((25, 4), dtype=np.float32)
             posescore_list.append(self.PoseScore(new_pose, None, 0, 0, 0, 0, 1, False))
@@ -533,8 +533,8 @@ class BoxingAIVideo(BoxingAI):
         # _newProcessToSeedVideoFrames:
         current_process = psutil.Process()
         children = current_process.children(recursive=True)
-        logger.debug('parent pid:', current_process.pid)
-        logger.debug('children pids:', [c.pid for c in children])
+        logger.debug(f'parent pid: {current_process.pid}')
+        logger.debug(f'children pids: {[c.pid for c in children]}')
 
         def _load_video(path, indices, queue):
             gen_name_img = Video(path).info().readDict(indices=indices, yield_=True)
@@ -628,7 +628,7 @@ class BoxingAIVideo(BoxingAI):
             poses_combination_distances.append((1, c_i, pose_entity.pose.distance2(prev_pose2)))
 
         poses_combination_distances_sorted = sorted(poses_combination_distances, key=lambda t: t[2])
-        logger.debug('poses_combination_distances_sorted:', poses_combination_distances_sorted)
+        logger.debug(f'poses_combination_distances_sorted: {poses_combination_distances_sorted}')
         _first_elem = poses_combination_distances_sorted.pop(0)
         _second_elem_base = filter(lambda t: t[0] != _first_elem[0] and t[1] != _first_elem[1],
                                    poses_combination_distances_sorted)
@@ -654,7 +654,7 @@ class BoxingAIVideo(BoxingAI):
         #     poses_distances = [poses_combination_distances[2],poses_combination_distances[1]]
 
         if smooth != 1:
-            logger.debug('poses_distances', poses_distances)
+            logger.debug(f'poses_distances {poses_distances}')
             cur_frame_poses_connected = [self._smooth_poses(*z) for z in
                                          zip(self.prev_frame_poses_holder,
                                              cur_frame_poses_connected,
@@ -688,10 +688,10 @@ class BoxingAIVideo(BoxingAI):
         else:
             inherit_type = 0
             should_inherit_position = np.zeros(inherited_times.shape, dtype=np.bool)
-            logger.debug('prev_pose:', prev_pose.keyPoints, 'cur_pose:', cur_pose.keyPoints)
-            logger.debug('torso_height:', torso_height, 'x0.20:', poses_dis_thre, 'poses_distance:', poses_distance)
+            logger.debug(f'prev_pose: {prev_pose.keyPoints} cur_pose: {cur_pose.keyPoints}')
+            logger.debug(f'torso_height: {torso_height} x0.20: {poses_dis_thre} poses_distance: {poses_distance}')
 
-        logger.debug('inherit_type:', inherit_type)
+        logger.debug(f'inherit_type: {inherit_type}')
 
         should_not_inherit_position = np.logical_not(should_inherit_position)
         if inherit_type != 2:
