@@ -5,7 +5,7 @@ import time
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from multiprocessing import Process, Queue
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +19,7 @@ from matplotlib import animation
 from zdl.AI.helper.openpose import DatumPickleable
 from zdl.AI.object_detection.TF_detector import ObjectDetector
 from zdl.AI.pose.extractor.extractor import Extractor
-from zdl.AI.pose.pose.pose import Pose, Poses
+from zdl.AI.pose.pose.pose import Poses
 from zdl.utils.helper.numpy import ndarrayLen
 from zdl.utils.io.log import logger
 from zdl.utils.media.image import ImageCV
@@ -525,7 +525,7 @@ class BoxingAIVideo(BoxingAI):
         self.frame_poses_inherited_times = None
         self.frame_poses_fully_inherited_times = None
 
-    def setIndices(self, indices):
+    def setIndices(self, indices: Union[range, Tuple, List]):
         self.indices = indices
         return self
 
