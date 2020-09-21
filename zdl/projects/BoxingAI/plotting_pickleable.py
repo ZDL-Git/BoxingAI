@@ -2,10 +2,10 @@ import pickle
 from typing import List
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pylab
 from matplotlib import animation
 from matplotlib.artist import Artist
-from numpy import np
 from zdl.utils.io.log import logger
 
 
