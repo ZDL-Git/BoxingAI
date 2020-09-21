@@ -64,8 +64,9 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         super().__init__()
         self.indices = None
 
+    @abstractmethod
     def _startProducingImgs(self):
-        self._imgs_producer()
+        pass
 
     def setBoxerDetector(self, object_detector: ObjectDetector):
         self._boxer_detector = object_detector
@@ -96,11 +97,6 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             img = hook(img)
             self._showIfEnabled(img, title=f'{name}:img_load_hook {i} result')
         return img
-
-    @property
-    @abstractmethod
-    def _imgs_producer(self):
-        pass
 
     @timeit
     def _detectBoxer(self, name_img_tuple):
@@ -525,7 +521,6 @@ class BoxingAIVideo(BoxingAI):
         self.media = Video(path)
         self.indices = indices
         self.queue_name_img_tuple = Queue(maxsize=10)
-        self._imgs_producer = self._newProcessToSeedVideoFrames
         # self.imgs_producer = partial(
         #     self._new_process_to_seed_video_frames, path, indices)
         self.prev_frame_poses_holder = None
@@ -536,7 +531,8 @@ class BoxingAIVideo(BoxingAI):
         self.indices = indices
         return self
 
-    def _newProcessToSeedVideoFrames(self):
+    def _startProducingImgs(self):
+        # _newProcessToSeedVideoFrames:
         current_process = psutil.Process()
         children = current_process.children(recursive=True)
         logger.debug('parent pid:', current_process.pid)
@@ -728,9 +724,8 @@ class BoxingAIImage(BoxingAI):
         super().__init__()
         self.media = ImageCV(path)
         self.queue_name_img_tuple = Queue(maxsize=2)
-        self._imgs_producer = self._loadImage
 
-    def _loadImage(self):
+    def _startProducingImgs(self):
         img = self.media.org()
         base_name = os.path.basename(self.media.fname)
         # self.require_show(img,title=f'{base_name}:org')
