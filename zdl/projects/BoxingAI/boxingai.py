@@ -116,7 +116,6 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
     @timeit
     def _estimatePose(self, name_img_tuple):
         poses, datum = self._processImg(name_img_tuple[1])
-        logger.debug(f'{name_img_tuple[0]}:_estimate_pose num:', ndarrayLen(datum.poseKeypoints))
 
         if self.show:
             center_points = Poses(datum.poseKeypoints, self._pose_estimator.pose_type).centers(
