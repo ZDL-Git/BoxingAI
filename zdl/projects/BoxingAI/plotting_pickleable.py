@@ -73,12 +73,12 @@ class PlottingPickleable:
         line_objs = []
         if poses:
             for p_i, pose in enumerate(poses):
-                pose_nonzero_b = pose.keyPoints != 0
+                pose_nonzero_b = pose.key_points != 0
                 pose_x_or_y_nonzero_b = np.logical_or(pose_nonzero_b[..., 0], pose_nonzero_b[..., 1])
                 for i, s in enumerate(self.pose_sections):
                     s_nonzero = np.asarray(s)[pose_x_or_y_nonzero_b[s]]
-                    x_a = pose.keyPoints[s_nonzero][..., 0]
-                    y_a = pose.keyPoints[s_nonzero][..., 1]
+                    x_a = pose.key_points[s_nonzero][..., 0]
+                    y_a = pose.key_points[s_nonzero][..., 1]
                     # section = ([person_trans[0][j] for j in s if person_trans[0][j]!=0],
                     #         [person_trans[1][j] for j in s if person_trans[1][j]!=0])
                     markersize = 6 if i in [0, 6, 7] else 8
@@ -88,15 +88,15 @@ class PlottingPickleable:
 
                 # set marker of inherited points to yellow
                 # Log.debug(pose[3])
-                partially_inherited_points = pose.keyPoints[..., 3] == 1
+                partially_inherited_points = pose.key_points[..., 3] == 1
                 should_plot = np.logical_and(partially_inherited_points, pose_x_or_y_nonzero_b)
-                lobj, = self.ax_main.plot(pose.keyPoints[..., 0][should_plot], pose.keyPoints[..., 1][should_plot],
+                lobj, = self.ax_main.plot(pose.key_points[..., 0][should_plot], pose.key_points[..., 1][should_plot],
                                           ls='', color=self.pose_colors[p_i], marker='o', markersize=6,
                                           markerfacecolor=self.pose_colors[p_i])
                 line_objs.append(lobj)
-                fully_inherited_points = pose.keyPoints[..., 3] == 2
+                fully_inherited_points = pose.key_points[..., 3] == 2
                 should_plot = np.logical_and(fully_inherited_points, pose_x_or_y_nonzero_b)
-                lobj, = self.ax_main.plot(pose.keyPoints[..., 0][should_plot], pose.keyPoints[..., 1][should_plot],
+                lobj, = self.ax_main.plot(pose.key_points[..., 0][should_plot], pose.key_points[..., 1][should_plot],
                                           ls='', color=self.pose_colors[p_i], marker='+', markersize=10,
                                           markerfacecolor=self.pose_colors[p_i])
                 line_objs.append(lobj)

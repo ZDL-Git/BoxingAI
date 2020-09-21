@@ -170,7 +170,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                           f'completion_score(cleaned):{t[2]} completion_multi_boxerscore:{t[3]}  '
                           f'points_scores_sum:{t[4]} scores_sum_after_re_pu:{t[5]}  '
                           f'norm_dis_to_boxer_center:{t[6]} knee_and_below_nonzero_exists:{t[7]}  '
-                          f'[p0x:{t[0].keyPoints[0][0]} p1x:{t[0].keyPoints[1][0]} p8x:{t[0].keyPoints[8][0]} p17x:{t[0].keyPoints[17][0]}]'
+                          f'[p0x:{t[0].key_points[0][0]} p1x:{t[0].key_points[1][0]} p8x:{t[0].key_points[8][0]} p17x:{t[0].key_points[17][0]}]'
                           for t in posescore_list])
             # posescore_list = list(filter(lambda t: t.points_scores_sum_after_re_pu,posescore_list[:max_people_num]))
             # posescore_list = posescore_list[:3]
@@ -205,11 +205,11 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         true_means_keep = [True] * len(pose_score_entities)
         for i, pose_score_entity_i in enumerate(pose_score_entities):
             p_i, p_i_score = pose_score_entity_i.pose, pose_score_entity_i.points_scores_sum_after_re_pu
-            p_i_x = p_i.keyPoints[..., 0]
+            p_i_x = p_i.key_points[..., 0]
             p_i_x_b = p_i_x > 0
             for j, pose_score_entity_j in enumerate(pose_score_entities[i + 1:]):
                 p_j, p_j_score = pose_score_entity_j.pose, pose_score_entity_j.points_scores_sum_after_re_pu
-                p_j_x = p_j.keyPoints[..., 0]
+                p_j_x = p_j.key_points[..., 0]
                 p_j_x_b = p_j_x > 0
                 p_i_j_x_b = np.logical_and(p_i_x_b, p_j_x_b)
                 if_exceed_this_then_remove = min(p_i_x_b.sum(), p_j_x_b.sum()) * 0.6
@@ -223,12 +223,12 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
     def _rescorePoseByBoxerScore(self, poses: Poses, boxer_id_score_to_every_pose: Optional[List[Tuple]]):
         if not poses.all_keypoints.any(): return []
 
-        reward_and_punishment = np.ones(len(poses[0].keyPoints))
+        reward_and_punishment = np.ones(len(poses[0].key_points))
         reward_and_punishment[poses.parts_indices['face']] = 0
         # reward_and_punishment[points_indices['knee_and_below']] = 1.2
         posescore_list = []
         for i, pose in enumerate(poses):
-            points_scores = pose.keyPoints[..., 2]
+            points_scores = pose.key_points[..., 2]
             nonzero_scores_bool = points_scores > 0
             count_nonzero = nonzero_scores_bool.sum()
             knee_and_below_nonzero_exists = nonzero_scores_bool[poses.parts_indices['knee_and_below']].sum() > 0
@@ -340,12 +340,12 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         line_objs = []
         if poses:
             for p_i, pose in enumerate(poses):
-                pose_nonzero_b = pose.keyPoints != 0
+                pose_nonzero_b = pose.key_points != 0
                 pose_x_or_y_nonzero_b = np.logical_or(pose_nonzero_b[..., 0], pose_nonzero_b[..., 1])
                 for i, s in enumerate(pose_sections):
                     s_nonzero = np.asarray(s)[pose_x_or_y_nonzero_b[s]]
-                    x_a = pose.keyPoints[s_nonzero][..., 0]
-                    y_a = pose.keyPoints[s_nonzero][..., 1]
+                    x_a = pose.key_points[s_nonzero][..., 0]
+                    y_a = pose.key_points[s_nonzero][..., 1]
                     # section = ([person_trans[0][j] for j in s if person_trans[0][j]!=0],
                     #         [person_trans[1][j] for j in s if person_trans[1][j]!=0])
                     markersize = 6 if i in [0, 6, 7] else 8
@@ -355,15 +355,15 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
                 # set marker of inherited points to yellow
                 # logger.debug(pose[3])
-                partially_inherited_points = pose.keyPoints[..., 3] == 1
+                partially_inherited_points = pose.key_points[..., 3] == 1
                 should_plot = np.logical_and(partially_inherited_points, pose_x_or_y_nonzero_b)
-                lobj, = axes['main'].plot(pose.keyPoints[..., 0][should_plot], pose.keyPoints[..., 1][should_plot],
+                lobj, = axes['main'].plot(pose.key_points[..., 0][should_plot], pose.key_points[..., 1][should_plot],
                                           ls='', color=pose_colors[p_i], marker='o', markersize=6,
                                           markerfacecolor=pose_colors[p_i])
                 line_objs.append(lobj)
-                fully_inherited_points = pose.keyPoints[..., 3] == 2
+                fully_inherited_points = pose.key_points[..., 3] == 2
                 should_plot = np.logical_and(fully_inherited_points, pose_x_or_y_nonzero_b)
-                lobj, = axes['main'].plot(pose.keyPoints[..., 0][should_plot], pose.keyPoints[..., 1][should_plot],
+                lobj, = axes['main'].plot(pose.key_points[..., 0][should_plot], pose.key_points[..., 1][should_plot],
                                           ls='', color=pose_colors[p_i], marker='+', markersize=10,
                                           markerfacecolor=pose_colors[p_i])
                 line_objs.append(lobj)
@@ -670,8 +670,8 @@ class BoxingAIVideo(BoxingAI):
     def _smooth_poses(self, prev_pose_entity, cur_pose_entity, smooth_factor, inherited_times, fully_inherited_times,
                       inherit_times_thre, poses_distance):
         prev_pose, cur_pose = prev_pose_entity.pose, cur_pose_entity.pose
-        cur_pose_zero_position = cur_pose.keyPoints == 0
-        prev_pose_zero_position = prev_pose.keyPoints == 0
+        cur_pose_zero_position = cur_pose.key_points == 0
+        prev_pose_zero_position = prev_pose.key_points == 0
         torso_height = cur_pose_entity.pose.torso_height()
         poses_dis_thre = torso_height * 0.50
         # inherit_type: 0 not inherit; 1 partial inherit; 2 all inherit
@@ -688,7 +688,7 @@ class BoxingAIVideo(BoxingAI):
         else:
             inherit_type = 0
             should_inherit_position = np.zeros(inherited_times.shape, dtype=np.bool)
-            logger.debug(f'prev_pose: {prev_pose.keyPoints} cur_pose: {cur_pose.keyPoints}')
+            logger.debug(f'prev_pose: {prev_pose.key_points} cur_pose: {cur_pose.key_points}')
             logger.debug(f'torso_height: {torso_height} x0.20: {poses_dis_thre} poses_distance: {poses_distance}')
 
         logger.debug(f'inherit_type: {inherit_type}')
@@ -699,20 +699,20 @@ class BoxingAIVideo(BoxingAI):
             inherited_times[should_inherit_position] += 1
             inherited_times[should_not_inherit_position] = 0
 
-        cur_pose.keyPoints[should_inherit_position] = prev_pose.keyPoints[should_inherit_position]
-        cur_pose.keyPoints[..., 3][should_inherit_position[..., 3]] = inherit_type
+        cur_pose.key_points[should_inherit_position] = prev_pose.key_points[should_inherit_position]
+        cur_pose.key_points[..., 3][should_inherit_position[..., 3]] = inherit_type
         if inherit_type == 0:
             return self.PoseScore(cur_pose, *cur_pose_entity[1:])
 
-        cur_pose.keyPoints[..., :3][should_inherit_position[..., :3]] = prev_pose.keyPoints[..., :3][
+        cur_pose.key_points[..., :3][should_inherit_position[..., :3]] = prev_pose.key_points[..., :3][
             should_inherit_position[..., :3]]
-        cur_pose_zero_position_after_inherit = cur_pose.keyPoints == 0
-        cur_pose_after_smooth = smooth_factor * cur_pose.keyPoints + (1 - smooth_factor) * prev_pose.keyPoints
+        cur_pose_zero_position_after_inherit = cur_pose.key_points == 0
+        cur_pose_after_smooth = smooth_factor * cur_pose.key_points + (1 - smooth_factor) * prev_pose.key_points
         should_not_smooth = np.zeros(inherited_times.shape, dtype=np.bool)
         should_not_smooth[prev_pose_zero_position] = True
         should_not_smooth[cur_pose_zero_position_after_inherit] = True
         should_not_smooth[..., 3] = True
-        cur_pose_after_smooth[should_not_smooth] = cur_pose.keyPoints[should_not_smooth]
+        cur_pose_after_smooth[should_not_smooth] = cur_pose.key_points[should_not_smooth]
         return self.PoseScore(self._pose_estimator.pose_type(cur_pose_after_smooth), *cur_pose_entity[1:])
 
 
