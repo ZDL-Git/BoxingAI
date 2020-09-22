@@ -5,7 +5,7 @@ import time
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from multiprocessing import Process, Queue
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Tuple, Union, Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -556,7 +556,7 @@ class BoxingAIVideo(BoxingAI):
         pw.daemon = True
         pw.start()
 
-    def _getEachBoxerTop(self, frame_posescore_entities, fill_to_least):
+    def _getEachBoxerTop(self, frame_posescore_entities, fill_to_least) -> Dict[int, BoxingAI.PoseScore]:
         top_pose_per_boxer = {}
         frame_posescore_entities_sorted = sorted(frame_posescore_entities, key=lambda t: t.norm_dis_to_boxer_center)
         for p_s in frame_posescore_entities_sorted:
@@ -598,7 +598,7 @@ class BoxingAIVideo(BoxingAI):
         return candidates
 
     @timeit
-    def _get_top_n(self, frame_posescore_entities, n):
+    def _get_top_n(self, frame_posescore_entities, n) -> List[BoxingAI.PoseScore]:
         # step1: get pose closest to every refer boxer
         # step2: sort by points socre sum, get top n
         # boxer_num = len({p_s.boxer_id for p_s in frame_posescore_entities})
@@ -621,12 +621,12 @@ class BoxingAIVideo(BoxingAI):
             self.frame_poses_fully_inherited_times = [[0], [0]]
             return self.prev_frame_poses_holder
 
-        prev_pose1, prev_pose2 = self.prev_frame_poses_holder[:2, 0]
+        prev_pose1, prev_pose2 = [pose_score.pose for pose_score in self.prev_frame_poses_holder[:2]]
         candidates_poses = list(self._getCandidates(frame_posescore_entities, fill_to_least=2))
         poses_combination_distances = []
         for c_i, pose_entity in enumerate(candidates_poses):
-            poses_combination_distances.append((0, c_i, pose_entity.pose.distance2(prev_pose1)))
-            poses_combination_distances.append((1, c_i, pose_entity.pose.distance2(prev_pose2)))
+            poses_combination_distances.append((0, c_i, pose_entity.pose.distanceTo(prev_pose1)))
+            poses_combination_distances.append((1, c_i, pose_entity.pose.distanceTo(prev_pose2)))
 
         poses_combination_distances_sorted = sorted(poses_combination_distances, key=lambda t: t[2])
         logger.debug(f'poses_combination_distances_sorted: {poses_combination_distances_sorted}')
