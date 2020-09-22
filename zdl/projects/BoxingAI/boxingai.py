@@ -200,7 +200,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         pass
 
     @timeit
-    def _filter_out_duplicate_pose(self, pose_score_entities):
+    def _filter_out_duplicate_pose(self, pose_score_entities: List[PoseScore]) -> List[PoseScore]:
         # poses_entities param should be a entities list, and every element's first position should be a pose
         true_means_keep = [True] * len(pose_score_entities)
         for i, pose_score_entity_i in enumerate(pose_score_entities):
@@ -213,14 +213,15 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                 p_j_x_b = p_j_x > 0
                 p_i_j_x_b = np.logical_and(p_i_x_b, p_j_x_b)
                 if_exceed_this_then_remove = min(p_i_x_b.sum(), p_j_x_b.sum()) * 0.6
-                points_dis_thre = 0.05 * (p_i.torso_height() if p_i_score > p_i_score else p_j.torso_height())
+                points_dis_thre = 0.05 * (p_i.torsoHeight() if p_i_score > p_i_score else p_j.torsoHeight())
                 if (np.abs((p_i_x - p_j_x)[p_i_j_x_b]) < points_dis_thre).sum() > if_exceed_this_then_remove:
                     index_to_remove = i + 1 + j if p_i_score >= p_j_score else i
                     true_means_keep[index_to_remove] = False
                     logger.debug(f'Removing duplicate pose: {pose_score_entities[index_to_remove]}')
         return [pose_score_entities[i] for i in range(len(true_means_keep)) if true_means_keep[i]]
 
-    def _rescorePoseByBoxerScore(self, poses: Poses, boxer_id_score_to_every_pose: Optional[List[Tuple]]):
+    def _rescorePoseByBoxerScore(self, poses: Poses, boxer_id_score_to_every_pose: Optional[List[Tuple]]) \
+            -> List[PoseScore]:
         if not poses.all_keypoints.any(): return []
 
         reward_and_punishment = np.ones(len(poses[0].key_points))
@@ -672,7 +673,7 @@ class BoxingAIVideo(BoxingAI):
         prev_pose, cur_pose = prev_pose_entity.pose, cur_pose_entity.pose
         cur_pose_zero_position = cur_pose.key_points == 0
         prev_pose_zero_position = prev_pose.key_points == 0
-        torso_height = cur_pose_entity.pose.torso_height()
+        torso_height = cur_pose_entity.pose.torsoHeight()
         poses_dis_thre = torso_height * 0.50
         # inherit_type: 0 not inherit; 1 partial inherit; 2 all inherit
         if poses_distance < poses_dis_thre:
