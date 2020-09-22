@@ -239,7 +239,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                 boxer_rect, boxer_score = boxer_entity[0], boxer_entity[2]
                 diagonal_half = ((boxer_rect[3] - boxer_rect[1]) ** 2 + (boxer_rect[2] - boxer_rect[0]) ** 2) ** 0.5 / 2
                 boxer_center = Point((boxer_rect[1] + boxer_rect[3]) / 2, (boxer_rect[0] + boxer_rect[2]) / 2)
-                pose_center = pose.center('obj')
+                pose_center = pose.center()
                 norm_dis_to_boxer_center = Point.dis(boxer_center, pose_center) / diagonal_half
             else:
                 boxer_id, boxer_score = None, 1
