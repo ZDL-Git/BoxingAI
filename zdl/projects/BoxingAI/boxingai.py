@@ -224,14 +224,14 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         if not poses.all_keypoints.any(): return []
 
         reward_and_punishment = np.ones(len(poses[0].key_points))
-        reward_and_punishment[poses.parts_indices['face']] = 0
+        reward_and_punishment[poses.PARTS_INDICES['face']] = 0
         # reward_and_punishment[points_indices['knee_and_below']] = 1.2
         posescore_list = []
         for i, pose in enumerate(poses):
             points_scores = pose.key_points[..., 2]
             nonzero_scores_bool = points_scores > 0
             count_nonzero = nonzero_scores_bool.sum()
-            knee_and_below_nonzero_exists = nonzero_scores_bool[poses.parts_indices['knee_and_below']].sum() > 0
+            knee_and_below_nonzero_exists = nonzero_scores_bool[poses.PARTS_INDICES['knee_and_below']].sum() > 0
             points_scores_sum = points_scores.sum()
             points_scores_sum_after_re_pu = (points_scores * reward_and_punishment).sum()
             if boxer_id_score_to_every_pose and boxer_id_score_to_every_pose[i]:
