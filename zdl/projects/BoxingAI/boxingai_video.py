@@ -46,7 +46,7 @@ class BoxingAIVideo(BoxingAI):
         logger.debug(f'parent pid: {current_process.pid}')
         logger.debug(f'children pids: {[c.pid for c in children]}')
 
-        def _load_video(path, indices, queue):
+        def _loadVideo(path, indices, queue):
             gen_name_img = Video(path).info().readDict(indices=indices, yield_=True)
             try:
                 while True:
@@ -60,7 +60,7 @@ class BoxingAIVideo(BoxingAI):
             except StopIteration:
                 queue.put('DONE')
 
-        pw = Process(target=_load_video, args=(self.media.fname, self.indices, self.queue_name_img_tuple),
+        pw = Process(target=_loadVideo, args=(self.media.fname, self.indices, self.queue_name_img_tuple),
                      name='imgs_producer_process')
         pw.daemon = True
         pw.start()

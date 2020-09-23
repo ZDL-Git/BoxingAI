@@ -89,14 +89,14 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
     @timeit
     def _detectBoxer(self, name_img_tuple):
-        result, box_entities = self._boxer_detector.detect(name_img_tuple[1])
+        result, bbox_entities = self._boxer_detector.detect(name_img_tuple[1])
         imgobj = ImageCV(name_img_tuple[1])
-        for box_entity in box_entities:
-            box_entity[0][::] = imgobj.normRectToAbsRect(box_entity[0], 1)
+        for bbox_entity in bbox_entities:
+            bbox_entity[0][::] = imgobj.normRectToAbsRect(bbox_entity[0], 1)
 
         if self.show:
-            imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').drawBoxes(box_entities, copy=True).show()
-        return result, box_entities
+            imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').drawBoxes(bbox_entities, copy=True).show()
+        return result, bbox_entities
 
     def _processImg(self, image) -> Tuple:
         poses, datum = self._pose_estimator.extract(image)
@@ -221,7 +221,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             points_scores = pose.key_points[..., 2]
             nonzero_scores_bool = points_scores > 0
             count_nonzero = nonzero_scores_bool.sum()
-            knee_and_below_nonzero_exists = nonzero_scores_bool[poses.PARTS_INDICES['knee_and_below']].sum() > 0
+            knee_and_below_nonzero_exists = nonzero_scores_bool[pose.PARTS_INDICES['knee_and_below']].sum() > 0
             points_scores_sum = points_scores.sum()
             points_scores_sum_after_re_pu = (points_scores * reward_and_punishment).sum()
             if boxer_id_score_to_every_pose and boxer_id_score_to_every_pose[i]:
