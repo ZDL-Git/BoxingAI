@@ -30,6 +30,15 @@ class BoxingAIVideo(BoxingAI):
         self.indices = indices
         return self
 
+    def setShow(self, show: bool):
+        if show:
+            num_to_show = len(self.indices) if self.indices else self.media.getInfo()['frame_c']
+            if num_to_show > 10 and input(f"About {num_to_show} pictures to be displayed, which may lead to crash."
+                                          " Do you want to display anyway? [y/n]:") != 'y':
+                show = False
+        self.show = show
+        return self
+
     def _startProducingImgs(self):
         # _newProcessToSeedVideoFrames:
         current_process = psutil.Process()

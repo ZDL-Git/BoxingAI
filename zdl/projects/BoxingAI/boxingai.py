@@ -1,5 +1,4 @@
 import inspect
-import sys
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 from typing import Optional, List, Tuple
@@ -73,11 +72,6 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         return self
 
     def setShow(self, show: bool):
-        if show and self.__class__ == BoxingAIVideo:
-            num_to_show = len(self.indices) if self.indices else self.media.get_info()['frame_c']
-            if num_to_show > 10 and input(f"About {num_to_show} pictures to be displayed, which may lead to crash."
-                                          " Do you want to continue? [y/n]:") != 'y':
-                sys.exit('exit.')
         self.show = show
         return self
 
@@ -121,7 +115,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
     @timeit
     def _gen_main_process(self, max_people_num, heuristic, smooth):
-        # img_shape = self.media.get_info()['shape']
+        # img_shape = self.media.getInfo()['shape']
         # act_recg1 = ActionRecognizer(self.pose_estimator_env[0]['model_pose'],img_shape)
         # act_recg2 = ActionRecognizer(self.pose_estimator_env[0]['model_pose'],img_shape)
         while True:
@@ -402,7 +396,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
     def animation(self, fps=23, number_people_max=2, display_=True,
                   plot_video=None, plot_center=False, plot_rect=False,
                   save_video_to=None, heuristic=True, show_animation_video=False, smooth=0.8):
-        media_info = self.media.get_info()
+        media_info = self.media.getInfo()
         w, h = media_info['width'], media_info['height']
         tip_h = 300
 
@@ -477,7 +471,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
     @timeit
     def evaluate(self, number_people_max=2, heuristic=True, smooth=0.8):
-        plotting = PlottingPickleable(self.media.get_info(), self._pose_estimator.pose_type.NAME)
+        plotting = PlottingPickleable(self.media.getInfo(), self._pose_estimator.pose_type.NAME)
 
         self._startProducingImgs()
         gen = self._gen_main_process(number_people_max, heuristic, smooth)
