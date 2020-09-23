@@ -107,7 +107,7 @@ class BoxingAIVideo(BoxingAI):
         return candidates
 
     @timeit
-    def _get_top_n(self, frame_posescore_entities, n) -> List[BoxingAI.PoseScore]:
+    def _getTopN(self, frame_posescore_entities, n) -> List[BoxingAI.PoseScore]:
         # step1: get pose closest to every refer boxer
         # step2: sort by points socre sum, get top n
         # boxer_num = len({p_s.boxer_id for p_s in frame_posescore_entities})
@@ -123,7 +123,7 @@ class BoxingAIVideo(BoxingAI):
         # assert len(frame_posescore_entities) >= 2,'Poses num should has been filled up to 2 or greater!'
         assert 0 < smooth <= 1, 'smooth value range: (0,1], 1 means not smooth'
         if self.prev_frame_poses_holder is None:
-            self.prev_frame_poses_holder = self._get_top_n(frame_posescore_entities, 2)
+            self.prev_frame_poses_holder = self._getTopN(frame_posescore_entities, 2)
 
             init_pose_inherit_times = np.zeros((25, 4), dtype=np.int)
             self.frame_poses_inherited_times = [init_pose_inherit_times, init_pose_inherit_times.copy()]
@@ -165,7 +165,7 @@ class BoxingAIVideo(BoxingAI):
 
         if smooth != 1:
             logger.debug(f'poses_distances {poses_distances}')
-            cur_frame_poses_connected = [self._smooth_poses(*z) for z in
+            cur_frame_poses_connected = [self._smoothPoses(*z) for z in
                                          zip(self.prev_frame_poses_holder,
                                              cur_frame_poses_connected,
                                              [smooth, smooth],
@@ -177,8 +177,8 @@ class BoxingAIVideo(BoxingAI):
         self.prev_frame_poses_holder = cur_frame_poses_connected
         return cur_frame_poses_connected
 
-    def _smooth_poses(self, prev_pose_entity, cur_pose_entity, smooth_factor, inherited_times, fully_inherited_times,
-                      inherit_times_thre, poses_distance):
+    def _smoothPoses(self, prev_pose_entity, cur_pose_entity, smooth_factor, inherited_times, fully_inherited_times,
+                     inherit_times_thre, poses_distance):
         prev_pose, cur_pose = prev_pose_entity.pose, cur_pose_entity.pose
         cur_pose_zero_position = cur_pose.key_points == 0
         prev_pose_zero_position = prev_pose.key_points == 0

@@ -114,7 +114,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         return datum
 
     @timeit
-    def _gen_main_process(self, max_people_num, heuristic, smooth):
+    def _genMainProcess(self, max_people_num, heuristic, smooth):
         # img_shape = self.media.getInfo()['shape']
         # act_recg1 = ActionRecognizer(self.pose_estimator_env[0]['model_pose'],img_shape)
         # act_recg2 = ActionRecognizer(self.pose_estimator_env[0]['model_pose'],img_shape)
@@ -142,7 +142,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                 poses = Poses(datum.poseKeypoints, self._pose_estimator.pose_type)
                 poses.cleanup(['face'])
                 posescore_list = self._rescorePoseByBoxerScore(poses, boxer_id_score_to_every_pose)
-                posescore_list = self._filter_out_duplicate_pose(posescore_list)
+                posescore_list = self._filterOutDuplicatePose(posescore_list)
             else:
                 # if heuristic and not boxer_entities:
                 #     logger.warn('only one boxer detected, use full img pose estimation!')
@@ -172,7 +172,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             # yield got[0],list(posescore_list),datum,boxer_entities if heuristic else None,[actions_hist1,actions_hist2]
             yield got[0], list(posescore_list), datum, boxer_entities if heuristic else None, [[], []]
 
-    def _fill_missing_pose(self, posescore_list, target_num):
+    def _fillMissingPose(self, posescore_list, target_num):
         # exists_num = len(posescore_list)
         # fill_num = missing_num = target_num - exists_num
         exists_boxer_num = len({p_s.boxer_id for p_s in posescore_list})
@@ -189,7 +189,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         pass
 
     @timeit
-    def _filter_out_duplicate_pose(self, pose_score_entities: List[PoseScore]) -> List[PoseScore]:
+    def _filterOutDuplicatePose(self, pose_score_entities: List[PoseScore]) -> List[PoseScore]:
         # poses_entities param should be a entities list, and every element's first position should be a pose
         true_means_keep = [True] * len(pose_score_entities)
         for i, pose_score_entity_i in enumerate(pose_score_entities):
@@ -273,7 +273,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         return res
 
     @timeit
-    def detect_boxer_then_pose_bak(self, max_people_num=2, heuristic=True, smooth=0.8):
+    def detectBoxerThenPoseBak(self, max_people_num=2, heuristic=True, smooth=0.8):
         assert self._boxer_detector, '_boxer_detector is None'
         assert self._pose_estimator, '_pose_estimator is None'
         self._startProducingImgs()
@@ -281,7 +281,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         try:
             while True:
                 cur_index, posescore_list, datum, boxer_entities, actions_hist_list = next(
-                    self._gen_main_process(max_people_num, heuristic, smooth))
+                    self._genMainProcess(max_people_num, heuristic, smooth))
                 all_poses.append(posescore_list)
         except StopIteration:
             pass
@@ -312,7 +312,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         assert self._pose_estimator, '_pose_estimator is None'
 
         self._startProducingImgs()
-        gen = self._gen_main_process(max_people_num, heuristic, smooth)
+        gen = self._genMainProcess(max_people_num, heuristic, smooth)
         all_for_debug = []
         try:
             while True:
@@ -423,7 +423,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         pylab.close()
 
         self._startProducingImgs()
-        gen = self._gen_main_process(number_people_max, heuristic, smooth)
+        gen = self._genMainProcess(number_people_max, heuristic, smooth)
         all_for_debug = []
         frames = []
         try:
@@ -474,7 +474,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         plotting = PlottingPickleable(self.media.getInfo(), self._pose_estimator.pose_type.NAME)
 
         self._startProducingImgs()
-        gen = self._gen_main_process(number_people_max, heuristic, smooth)
+        gen = self._genMainProcess(number_people_max, heuristic, smooth)
         all_for_debug = []
         try:
             while True:
