@@ -11,6 +11,7 @@ from zdl.utils.media.video import Video
 from zdl.utils.time.counter import timeit
 
 from zdl.projects.BoxingAI.boxingai import BoxingAI
+from zdl.projects.BoxingAI.structs import PoseScore
 
 
 class BoxingAIVideo(BoxingAI):
@@ -65,7 +66,7 @@ class BoxingAIVideo(BoxingAI):
         pw.daemon = True
         pw.start()
 
-    def _getEachBoxerTop(self, frame_posescore_entities, fill_to_least) -> Dict[int, BoxingAI.PoseScore]:
+    def _getEachBoxerTop(self, frame_posescore_entities, fill_to_least) -> Dict[int, PoseScore]:
         top_pose_per_boxer = {}
         frame_posescore_entities_sorted = sorted(frame_posescore_entities, key=lambda t: t.norm_dis_to_boxer_center)
         for p_s in frame_posescore_entities_sorted:
@@ -75,7 +76,7 @@ class BoxingAIVideo(BoxingAI):
         for i in range(need_fill):
             boxer_id = 10000 + i
             new_pose = self._pose_estimator.pose_type(np.zeros((25, 4), dtype=np.float32))
-            top_pose_per_boxer[boxer_id] = self.PoseScore(new_pose, boxer_id, 0, 0, 0, 0, 1, False)
+            top_pose_per_boxer[boxer_id] = PoseScore(new_pose, boxer_id, 0, 0, 0, 0, 1, False)
 
         return top_pose_per_boxer
 
@@ -102,12 +103,12 @@ class BoxingAIVideo(BoxingAI):
         for i in range(need_fill):
             boxer_id = 10000 + i
             new_pose = self._pose_estimator.pose_type(np.zeros((25, 4), dtype=np.float32))
-            candidates.append(self.PoseScore(new_pose, boxer_id, 0, 0, 0, 0, 1, False))
+            candidates.append(PoseScore(new_pose, boxer_id, 0, 0, 0, 0, 1, False))
 
         return candidates
 
     @timeit
-    def _getTopN(self, frame_posescore_entities, n) -> List[BoxingAI.PoseScore]:
+    def _getTopN(self, frame_posescore_entities, n) -> List[PoseScore]:
         # step1: get pose closest to every refer boxer
         # step2: sort by points socre sum, get top n
         # boxer_num = len({p_s.boxer_id for p_s in frame_posescore_entities})
@@ -212,7 +213,7 @@ class BoxingAIVideo(BoxingAI):
         cur_pose.key_points[should_inherit_position] = prev_pose.key_points[should_inherit_position]
         cur_pose.key_points[..., 3][should_inherit_position[..., 3]] = inherit_type
         if inherit_type == 0:
-            return self.PoseScore(cur_pose, *cur_pose_entity[1:])
+            return PoseScore(cur_pose, *cur_pose_entity[1:])
 
         cur_pose.key_points[..., :3][should_inherit_position[..., :3]] = prev_pose.key_points[..., :3][
             should_inherit_position[..., :3]]
@@ -223,4 +224,4 @@ class BoxingAIVideo(BoxingAI):
         should_not_smooth[cur_pose_zero_position_after_inherit] = True
         should_not_smooth[..., 3] = True
         cur_pose_after_smooth[should_not_smooth] = cur_pose.key_points[should_not_smooth]
-        return self.PoseScore(self._pose_estimator.pose_type(cur_pose_after_smooth), *cur_pose_entity[1:])
+        return PoseScore(self._pose_estimator.pose_type(cur_pose_after_smooth), *cur_pose_entity[1:])

@@ -1,6 +1,5 @@
 import inspect
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple
 from typing import Optional, List, Tuple
 
 import matplotlib.pyplot as plt
@@ -22,6 +21,7 @@ from zdl.utils.media.point import Point
 from zdl.utils.time.counter import timeit
 
 from zdl.projects.BoxingAI.plotting_pickleable import PlottingPickleable
+from zdl.projects.BoxingAI.structs import PoseScore
 
 
 class BoxingAIHelper:
@@ -49,11 +49,6 @@ class BoxingAIHelper:
 
 
 class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
-    PoseScore = namedtuple('PoseScore', ['pose', 'boxer_id', 'completion_score', 'completion_multi_boxerScore',
-                                         'points_score_sum', 'points_scores_sum_after_re_pu',
-                                         'norm_dis_to_boxer_center',
-                                         'knee_and_below_nonzero_exists'])
-
     def __init__(self):
         super().__init__()
         self.indices = None
@@ -184,7 +179,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
         logger.info(f'fill missing pose keypoints num: {missing_num}')
         for _ in range(missing_num):
             new_pose = np.zeros((25, 4), dtype=np.float32)
-            posescore_list.append(self.PoseScore(new_pose, None, 0, 0, 0, 0, 1, False))
+            posescore_list.append(PoseScore(new_pose, None, 0, 0, 0, 0, 1, False))
         return posescore_list
 
     @abstractmethod
@@ -238,10 +233,10 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                 boxer_id, boxer_score = None, 1
                 # from heuristic denotes punishment, from non heuristic will be idle
                 norm_dis_to_boxer_center = 1
-            pose_score = self.PoseScore(pose, boxer_id, count_nonzero, count_nonzero * boxer_score,
-                                        points_scores_sum, points_scores_sum_after_re_pu,
-                                        norm_dis_to_boxer_center,
-                                        knee_and_below_nonzero_exists)
+            pose_score = PoseScore(pose, boxer_id, count_nonzero, count_nonzero * boxer_score,
+                                   points_scores_sum, points_scores_sum_after_re_pu,
+                                   norm_dis_to_boxer_center,
+                                   knee_and_below_nonzero_exists)
             posescore_list.append(pose_score)
         posescore_list.sort(key=lambda t: t.norm_dis_to_boxer_center, reverse=False)
         # posescore_list.sort(key=lambda t: t.points_scores_sum_after_re_pu, reverse=True)
