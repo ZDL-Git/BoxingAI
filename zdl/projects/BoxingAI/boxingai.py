@@ -95,7 +95,10 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             bbox_entity[0][::] = imgobj.normRectToAbsRect(bbox_entity[0], 1)
 
         if self.show:
-            imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').drawBoxes(bbox_entities, copy=True).show()
+            bbox_rect_label = [(entity[0], f"{entity[1]}:{i}: {str(100 * entity[2])[:5]}%") for i, entity in
+                               enumerate(bbox_entities)]
+            imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').drawBboxes(bbox_rect_label,
+                                                                                    copy=True).show()
         return result, bbox_entities
 
     def _processImg(self, image) -> Tuple:
