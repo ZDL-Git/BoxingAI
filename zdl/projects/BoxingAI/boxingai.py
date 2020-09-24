@@ -12,6 +12,7 @@ from IPython.core.display import HTML, display
 from matplotlib import animation
 from zdl.AI.helper.openpose import DatumPickleable
 from zdl.AI.object_detection.TF_detector import ObjectDetector
+from zdl.AI.object_detection.structs import ObjectDetected
 from zdl.AI.pose_estimation.extractor.extractor import Extractor
 from zdl.AI.pose_estimation.pose.pose import Poses
 from zdl.utils.helper.numpy import ndarrayLen
@@ -204,7 +205,8 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                     logger.debug(f'Removing duplicate pose: {pose_score_entities[index_to_remove]}')
         return [pose_score_entities[i] for i in range(len(true_means_keep)) if true_means_keep[i]]
 
-    def _rescorePoseByBoxerScore(self, poses: Poses, boxer_id_score_to_every_pose: Optional[List[Tuple]]) \
+    def _rescorePoseByBoxerScore(self, poses: Poses,
+                                 boxer_id_score_to_every_pose: Optional[List[Tuple[int, ObjectDetected]]]) \
             -> List[PoseScore]:
         if not poses.all_keypoints.any(): return []
 
@@ -221,9 +223,9 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             points_scores_sum_after_re_pu = (points_scores * reward_and_punishment).sum()
             if boxer_id_score_to_every_pose and boxer_id_score_to_every_pose[i]:
                 boxer_id, boxer_entity = boxer_id_score_to_every_pose[i]
-                boxer_rect, boxer_score = boxer_entity[0], boxer_entity[2]
-                diagonal_half = ((boxer_rect[3] - boxer_rect[1]) ** 2 + (boxer_rect[2] - boxer_rect[0]) ** 2) ** 0.5 / 2
-                boxer_center = Point((boxer_rect[1] + boxer_rect[3]) / 2, (boxer_rect[0] + boxer_rect[2]) / 2)
+                boxer_rect, boxer_score = boxer_entity.bbox, boxer_entity.score
+                diagonal_half = boxer_rect.diagonal() / 2
+                boxer_center = boxer_rect.center()
                 pose_center = pose.center()
                 norm_dis_to_boxer_center = Point.dis(boxer_center, pose_center) / diagonal_half
             else:
