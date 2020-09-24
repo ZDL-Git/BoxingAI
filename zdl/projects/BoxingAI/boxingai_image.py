@@ -1,5 +1,5 @@
 import os
-from multiprocessing.queues import Queue
+from multiprocessing import Queue
 
 from zdl.utils.media.image import ImageCV
 

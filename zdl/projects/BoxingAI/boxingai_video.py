@@ -1,7 +1,6 @@
 import os
 import time
-from multiprocessing.context import Process
-from multiprocessing.queues import Queue
+from multiprocessing import Process, Queue
 from typing import Union, Tuple, List, Dict
 
 import numpy as np
