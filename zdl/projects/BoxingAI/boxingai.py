@@ -47,6 +47,16 @@ class BoxingAIHelper:
                 pass
         return boxer_entities
 
+    def _fillMissingPose(self, posescore_list, target_num):
+        exists_boxer_num = len({p_s.boxer_id for p_s in posescore_list})
+        missing_num = target_num - exists_boxer_num
+        if missing_num <= 0: return posescore_list
+        logger.info(f'fill missing pose keypoints num: {missing_num}')
+        for _ in range(missing_num):
+            new_pose = np.zeros((25, 4), dtype=np.float32)
+            posescore_list.append(PoseScore(new_pose, None, 0, 0, 0, 0, 1, False))
+        return posescore_list
+
 
 class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
     def __init__(self):
@@ -84,17 +94,17 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
     @timeit
     def _detectBoxer(self, name_img_tuple):
-        result, bbox_entities = self._boxer_detector.detect(name_img_tuple[1])
+        result, object_detected_list = self._boxer_detector.detect(name_img_tuple[1])
         imgobj = ImageCV(name_img_tuple[1])
-        for bbox_entity in bbox_entities:
-            bbox_entity[0][::] = imgobj.normRectToAbsRect(bbox_entity[0], 1)
+        for object_detected in object_detected_list:
+            object_detected.bbox = imgobj.normRectToAbsRect(object_detected.bbox, 1)
 
         if self.show:
-            bbox_rect_label = [(entity[0], f"{entity[1]}:{i}: {str(100 * entity[2])[:5]}%") for i, entity in
-                               enumerate(bbox_entities)]
+            bbox_rect_label = [(detected.bbox, f"{detected.class_name}:{i}: {str(100 * detected.score)[:5]}%")
+                               for i, detected in enumerate(object_detected_list)]
             imgobj.setTitle(f'{name_img_tuple[0]}:boxer_detect_result:').drawBboxes(bbox_rect_label,
                                                                                     copy=True).show()
-        return result, bbox_entities
+        return result, object_detected_list
 
     def _processImg(self, image) -> Tuple:
         poses, datum = self._pose_estimator.extract(image)
@@ -120,14 +130,13 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             got = self.queue_name_img_tuple.get()
             if got == 'DONE': break
             if heuristic:
-                logger.debug('heuristic mode')
-                _, boxer_entities = self._detectBoxer(got)
+                _, object_detected_list = self._detectBoxer(got)
                 img_obj = ImageCV(got[1], title=got[0])
                 dilate_ratio = 1.1
                 roi_datum_tuple_list = []
                 boxer_id_score_to_every_pose = []
-                for i, b in enumerate(boxer_entities):
-                    roi_rect = img_obj.rectDilate(b[0], dilate_ratio)
+                for i, b in enumerate(object_detected_list):
+                    roi_rect = img_obj.rectDilate(b.bbox, dilate_ratio)
                     boxer_roi_img = img_obj.roiCopy(roi_rect).org()
                     datum = self._estimatePose((f'{got[0]}:boxer {i} (dilate_ratio {dilate_ratio})', boxer_roi_img))
                     roi_datum_tuple_list.append((roi_rect, datum))
@@ -149,7 +158,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                 poses = Poses(datum.poseKeypoints, self._pose_estimator.pose_type)
                 poses.cleanup(['face'])
                 posescore_list = self._rescorePoseByBoxerScore(poses, None)
-                boxer_entities = None
+                object_detected_list = None
 
             # posescore_list = self._fill_missing_pose(posescore_list, max_people_num)
             logger.debug('rescored pose score:')
@@ -168,19 +177,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
             # act_recg1.show()
 
             # yield got[0],list(posescore_list),datum,boxer_entities if heuristic else None,[actions_hist1,actions_hist2]
-            yield got[0], list(posescore_list), datum, boxer_entities if heuristic else None, [[], []]
-
-    def _fillMissingPose(self, posescore_list, target_num):
-        # exists_num = len(posescore_list)
-        # fill_num = missing_num = target_num - exists_num
-        exists_boxer_num = len({p_s.boxer_id for p_s in posescore_list})
-        missing_num = target_num - exists_boxer_num
-        if missing_num <= 0: return posescore_list
-        logger.info(f'fill missing pose keypoints num: {missing_num}')
-        for _ in range(missing_num):
-            new_pose = np.zeros((25, 4), dtype=np.float32)
-            posescore_list.append(PoseScore(new_pose, None, 0, 0, 0, 0, 1, False))
-        return posescore_list
+            yield got[0], list(posescore_list), datum, object_detected_list if heuristic else None, [[], []]
 
     @abstractmethod
     def _connectAndSmoothPoses(self, all_poses, smooth):
