@@ -1,5 +1,5 @@
 import pickle
-from typing import List
+from typing import List, Optional, Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -60,7 +60,16 @@ class PlottingPickleable:
         self.ax_main = ax_main
         self.ax_tip = ax_tip
 
-    def newFrame(self, poses=[], points=[], texts=[], rects=[]):
+    def newFrame(self, poses: Optional[List] = None, points: Optional[List] = None, texts: Optional[Dict] = None,
+                 rects: Optional[List] = None):
+        if poses is None:
+            poses = []
+        if points is None:
+            points = []
+        if texts is None:
+            texts = {}
+        if rects is None:
+            rects = []
         self.frames_contents[len(self.frames_contents)] = {'poses': poses, 'points': points, 'texts': texts,
                                                            'rects': rects}
 
