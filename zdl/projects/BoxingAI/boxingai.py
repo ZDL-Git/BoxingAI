@@ -54,7 +54,7 @@ class BoxingAIHelper:
         if missing_num <= 0: return posescore_list
         logger.info(f'fill missing pose keypoints num: {missing_num}')
         for _ in range(missing_num):
-            new_pose = np.zeros((25, 4), dtype=np.float32)
+            new_pose = self._pose_estimator.pose_type.newZeroPose()
             posescore_list.append(PoseScore(new_pose, None, 0, 0, 0, 0, 1, False))
         return posescore_list
 

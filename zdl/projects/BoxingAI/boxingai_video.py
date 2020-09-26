@@ -74,7 +74,7 @@ class BoxingAIVideo(BoxingAI):
         need_fill = max(fill_to_least - len(top_pose_per_boxer), 0)
         for i in range(need_fill):
             boxer_id = 10000 + i
-            new_pose = self._pose_estimator.pose_type(np.zeros((25, 4), dtype=np.float32))
+            new_pose = self._pose_estimator.pose_type.newZeroPose()
             top_pose_per_boxer[boxer_id] = PoseScore(new_pose, boxer_id, 0, 0, 0, 0, 1, False)
 
         return top_pose_per_boxer
@@ -101,7 +101,7 @@ class BoxingAIVideo(BoxingAI):
         need_fill = max(fill_to_least - len(candidates), 0)
         for i in range(need_fill):
             boxer_id = 10000 + i
-            new_pose = self._pose_estimator.pose_type(np.zeros((25, 4), dtype=np.float32))
+            new_pose = self._pose_estimator.pose_type.newZeroPose()
             candidates.append(PoseScore(new_pose, boxer_id, 0, 0, 0, 0, 1, False))
 
         return candidates
@@ -125,7 +125,7 @@ class BoxingAIVideo(BoxingAI):
         if self.prev_frame_poses_holder is None:
             self.prev_frame_poses_holder = self._getTopN(frame_posescore_entities, 2)
 
-            init_pose_inherit_times = np.zeros((25, 4), dtype=np.int)
+            init_pose_inherit_times = self._pose_estimator.pose_type.newZeroPose().key_points
             self.frame_poses_inherited_times = [init_pose_inherit_times, init_pose_inherit_times.copy()]
             self.frame_poses_fully_inherited_times = [[0], [0]]
             return self.prev_frame_poses_holder
