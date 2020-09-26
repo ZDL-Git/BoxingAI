@@ -143,7 +143,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
                     roi_datum_tuple_list.append((roi_rect, datum))
                     boxer_id_score_to_every_pose += [(i, b)] * max(1, ndarrayLen(datum.poseKeypoints))
                 datum = DatumPickleable.rebuildFromRoiDatum(got[1], roi_datum_tuple_list,
-                                                            self._pose_estimator.pose_type, True)
+                                                            self._pose_estimator.pose_type)
                 # datum,fill_num = self._fill_missing_pose_keypoints(datum, max_people_num)
                 # boxer_id_score_to_every_pose += [None] * fill_num
                 self._showIfEnabled(datum.cvOutputData, title=f'{got[0]}:rebuild(may be covered)')
