@@ -321,7 +321,7 @@ class BoxingAI(BoxingAIHelper, metaclass=ABCMeta):
 
     @timeit
     def _plotPose(self, axes, poses, points=None, texts: Optional[dict] = None, rects: list = None):
-        pose_sections = self._pose_estimator.pose_type.sections
+        pose_sections = self._pose_estimator.pose_type.SECTIONS
         pose_colors = ['blue', 'red', 'gray']
 
         line_objs = []
