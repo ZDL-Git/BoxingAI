@@ -14,7 +14,7 @@ from zdl.AI.helper.openpose import DatumPickleable
 from zdl.AI.object_detection.TF_detector import ObjectDetector
 from zdl.AI.object_detection.structs import ObjectDetected
 from zdl.AI.pose_estimation.extractor.extractor import Extractor
-from zdl.AI.pose_estimation.pose.pose import Poses
+from zdl.AI.pose_estimation.pose.base_pose import Poses
 from zdl.utils.helper.numpy import ndarrayLen
 from zdl.utils.io.log import logger
 from zdl.utils.media.image import ImageCV
